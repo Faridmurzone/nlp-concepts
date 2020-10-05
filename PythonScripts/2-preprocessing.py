@@ -30,3 +30,18 @@ stemmer = SnowballStemmer('spanish')
 stemmed_text = [stemmer.stem(i) for i in pablito_tokenizado]
 
 print(stemmed_text)
+
+from nltk.stem import WordNetLemmatizer
+nltk.download('omw')
+nltk.download('wordnet')
+wnl = WordNetLemmatizer()
+lemmatized_text = [wnl.lemmatize(i) for i in pablito_tokenizado]
+print(lemmatized_text)
+
+import stanza
+stanza.download("es")
+nlp = stanza.Pipeline(lang='es', processors='tokenize,mwt,pos,lemma')
+texto_pablito = "Pablito clavó un clavito cuantos clavitos clava pablito"
+doc = nlp(texto_pablito)
+print(*[f'Palabra: {word.text+" "}\tLemma: {word.lemma}' for sent in doc.sentences for word in sent.words], sep='\n')
+
