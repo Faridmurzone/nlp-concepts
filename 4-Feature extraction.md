@@ -46,4 +46,55 @@ TF proviene del inglés **Term Frecuency**, frecuencia del término. Existen div
 - Term Frecuency: Contar las apariciones del término en el documento y dividirlo sobre la totalidad de términos en el documento.
 - Normalización logaritmica: Tomando el logaritmo del recuento.
 
-IDF proviene del inglés **Inverse Document Frecuency**, frecuencia de documento inversa. Vamos a nomenclar con la letra N a la totalidad de documentos en nuestro corpus y al corpus con la letra D.
+IDF proviene del inglés **Inverse Document Frecuency**, frecuencia de documento inversa. Vamos a nomenclar con la letra N a la totalidad de comentarios en nuestro corpus y al corpus con la letra D, que es el conjunto de todos nuestros comentarios. Ahora veamos cuantos comentarios hay en el corpus que tengan un término específico (por ejemplo "buenísimo"), su representación matemática sería así: *|{d ∈ D: t ∈ d}|* donde d es cada documento en el corpus y t el término en el documento.
+
+Con esta simbología ya tenemos la interpretación de IDF:
+
+
+Que es el logaritmo de N (totalidad de comentarios) sobre comentarios que tengan el término específico en el corpus.
+
+
+Con todo lo expuesto ya podemos calcular el TF-IDF como el producto de TF y IDF:
+
+Para este cálculo hemos requerido, el término a examinar, el documento y el corpus completo de documentos (en nuestro ejemplo comentarios). Una vez procesado este cálculo obtenemos un peso que es la frecuencia en determinado documento. Queríamos encontrar qué términos eran más o menos frecuentes que otros, así que vamos a la parte divertida y hagamoslo en python. Para ello utilizaremos la librería scikit-learn que hará toda la matemática por nosotros:
+
+```python
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+import pandas as pd
+comentarios = ["esta pelicula es malisima", "esta pelicula no es malisima", "esta pelicula es buenisima", "malisima", "me gustó", "no me gustó", "no creo que sea una buena película", "es buenisima"]
+
+tfidf = TfidfVectorizer(min_df=2, max_df=0.5, ngram_range=(1,2))
+
+features = tfidf.fit_transform(comentarios)
+
+df = pd.DataFrame(
+    features.todense(),
+    columns=tfidf.get_feature_names()
+)
+print(df)
+
+# Output:
+   buenisima        es  es buenisima  ...        no  pelicula  pelicula es
+0   0.000000  0.321127      0.000000  ...  0.000000  0.366257     0.424441
+1   0.000000  0.328779      0.000000  ...  0.374985  0.374985     0.000000
+2   0.415002  0.313986      0.415002  ...  0.000000  0.358112     0.415002
+3   0.000000  0.000000      0.000000  ...  0.000000  0.000000     0.000000
+4   0.000000  0.000000      0.000000  ...  0.000000  0.000000     0.000000
+5   0.000000  0.000000      0.000000  ...  0.445928  0.000000     0.000000
+6   0.000000  0.000000      0.000000  ...  1.000000  0.000000     0.000000
+7   0.623489  0.471725      0.623489  ...  0.000000  0.000000     0.000000
+
+[8 rows x 13 columns]
+```
+
+Para explicar brevemente lo que hicimos:
+- En las lineas 1 y 2 importamos TfidVectorizer y pandas
+- En la linea 3 armamos una lista de comentarios ficticios para analizar.
+- En la linea 4 definimos los parámetros para el TfidVectorizer, min_df y max_df definen un humbral mínimo y máximo de frecuencia (threshold). En síntesis lo que hace es eliminar los n-gramas que tienen una frecuencia demasiado baja y ngram_range define que tipo de ngramas vamos a analizar (en nuestro caso puse unigramas y bigramas) así scikit sabe qué tipo de n-gramas tomar para la vectorización.
+- Luego el método fit_transform() ejecuta la instrucción
+- La última linea sólo arma la tabla en pandas para visualizarla. 
+
+
+
+El output mostrado está resumido, ya que para las 6 frases se encontraron un total de 13 columnas. Tengamos también en cuenta que algunos n-gramas fueron filtrados por el threshold de min_df y max_df. También vemos que la librería normalizó los valores por nosotros en un rango entre 0 y 1. Esto facilita a la computadora poder analizar los pesos en forma relativa a los demás. Los invito a explorar los pesos, ya tenemos nuestro TF-IDF. Si bien el ejemplo es un dataset demasiado chico ya podemos empezar a reconocer cómo para cada frase algunos n-gramas empiezan a ser más determinantes que otros. A medida que crece en volumen nuestro dataset será más y más obvio. Ya estamos listos para entrenar un modelo que clasifique automáticamente.
