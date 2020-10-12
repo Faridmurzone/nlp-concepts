@@ -8,3 +8,5 @@ Created on Sun Oct 11 08:29:22 2020
 
 import pandas as pd
 import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+
